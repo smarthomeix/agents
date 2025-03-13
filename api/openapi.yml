@@ -13,6 +13,7 @@ info:
 tags:
   - name: Service
   - name: Integrations
+  - name: Devices
 
 paths:
   /service:
@@ -33,6 +34,47 @@ paths:
       responses:
         200:
           $ref: '#/components/responses/Integrations'
+  /devices:
+    post:
+      tags:
+        - Devices
+      operationId: PostDevice
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                  format: uuid
+                integrationId:
+                  type: string
+                config:
+                  type: object
+                  additionalProperties: true
+              required:
+                - id
+                - integrationId
+      summary: Register a new instance of a device
+      responses:
+        200:
+          $ref: '#/components/responses/Device'
+        400:
+          $ref: '#/components/responses/400'
+        409:
+          $ref: '#/components/responses/409'
+  /devices/{deviceId}:
+    delete:
+      tags:
+        - Devices
+      operationId: DeleteDevice
+      summary: Delete an instance of a device
+      responses:
+        204:
+          $ref: '#/components/responses/204'
+        404:
+          $ref: '#/components/responses/404'
 
 components:
   schemas:
@@ -60,6 +102,20 @@ components:
           type: string
         developer:
           type: string
+    Device:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        integrationId:
+          type: string
+        config:
+          type: object
+          additionalProperties: true
+        registeredAt:
+          type: string
+          format: date-time
   responses:
     Service:
       description: OK
@@ -78,3 +134,17 @@ components:
                 type: array
                 items:
                   $ref: "#/components/schemas/Integration"
+    Device:
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Device"
+    204:
+      description: No Content
+    400:
+      description: Bad Request
+    404:
+      description: Not Found
+    409:
+      description: Conflict

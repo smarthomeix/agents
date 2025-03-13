@@ -3,22 +3,24 @@ package service
 import (
 	"net/http"
 
-	base "github.com/smarthomeix/agents/pkg/service"
+	"github.com/smarthomeix/agents/pkg/director"
 	"github.com/smarthomeix/pkg/http/response"
 )
 
 type Handler struct {
-	service base.ServiceInterface
+	director *director.Director
 }
 
-func NewHandler(service base.ServiceInterface) *Handler {
+func NewHandler(director *director.Director) *Handler {
 	return &Handler{
-		service: service,
+		director: director,
 	}
 }
 
 func (h *Handler) Get(w http.ResponseWriter, r *http.Request) {
-	resource := FormatResource(h.service.GetService())
+	service := h.director.GetService()
+
+	resource := FormatResource(service.GetService())
 
 	response.HandleJSON(w, resource)
 }

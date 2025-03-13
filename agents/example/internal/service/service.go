@@ -22,7 +22,7 @@ func NewExampleService() *Service {
 	}
 
 	integrations := map[string]base.IntegrationInterface{
-		"integration.controller": example.NewIntegration(),
+		"integration.example": example.NewIntegration(),
 	}
 
 	return &Service{

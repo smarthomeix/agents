@@ -6,12 +6,13 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/smarthomeix/agents/pkg/director"
+	"github.com/smarthomeix/agents/pkg/http/router/handlers/devices"
 	"github.com/smarthomeix/agents/pkg/http/router/handlers/integrations"
 	"github.com/smarthomeix/agents/pkg/http/router/handlers/service"
-	base "github.com/smarthomeix/agents/pkg/service"
 )
 
-func NewServer(port string, handlers base.ServiceInterface) *http.Server {
+func NewServer(port string, director *director.Director) *http.Server {
 	mux := chi.NewMux()
 
 	mux.Use(middleware.RequestID)
@@ -19,8 +20,9 @@ func NewServer(port string, handlers base.ServiceInterface) *http.Server {
 	mux.Use(middleware.Logger)
 	mux.Use(middleware.Recoverer)
 
-	mountService(mux, handlers)
-	mountIntegrations(mux, handlers)
+	mountService(mux, director)
+	mountIntegrations(mux, director)
+	mountDevices(mux, director)
 
 	return &http.Server{
 		Addr:    fmt.Sprintf(":%s", port),
@@ -28,14 +30,22 @@ func NewServer(port string, handlers base.ServiceInterface) *http.Server {
 	}
 }
 
-func mountService(mux *chi.Mux, handlers base.ServiceInterface) {
-	h := service.NewHandler(handlers)
+func mountService(mux *chi.Mux, director *director.Director) {
+	h := service.NewHandler(director)
 
 	mux.Get("/service", h.Get)
 }
 
-func mountIntegrations(mux *chi.Mux, handlers base.ServiceInterface) {
-	h := integrations.NewHandler(handlers)
+func mountIntegrations(mux *chi.Mux, director *director.Director) {
+	h := integrations.NewHandler(director)
 
 	mux.Get("/integrations", h.List)
+}
+
+func mountDevices(mux *chi.Mux, director *director.Director) {
+	h := devices.NewHandler(director)
+
+	mux.Post("/devices", h.Post)
+
+	mux.With(h.Middleware).Delete("/devices/{deviceId}", h.Delete)
 }

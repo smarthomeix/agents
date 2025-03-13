@@ -4,16 +4,16 @@ import (
 	"github.com/smarthomeix/agents/pkg/service"
 )
 
-type ControllerDevice struct{}
+type ExampleDriver struct{}
 
-func (d *ControllerDevice) GetActions() service.ActionCollection {
+func (d *ExampleDriver) GetActions() service.ActionCollection {
 	return service.ActionCollection{}
 }
 
-func (d *ControllerDevice) GetTelemetry() (service.Telemetry, error) {
+func (d *ExampleDriver) GetTelemetry() (service.Telemetry, error) {
 	return service.Telemetry{}, nil
 }
 
-func (d *ControllerDevice) ExecuteAction(req service.ExecuteActionRequest) (service.ExecuteActionResult, error) {
+func (d *ExampleDriver) ExecuteAction(req service.ExecuteActionRequest) (service.ExecuteActionResult, error) {
 	return service.ExecuteActionResult{}, nil
 }

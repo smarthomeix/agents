@@ -9,11 +9,12 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/smarthomeix/agents/pkg/director"
 	"github.com/smarthomeix/agents/pkg/http/router"
 	"github.com/smarthomeix/agents/pkg/service"
 )
 
-func NewServer(handlers service.ServiceInterface) {
+func NewServer(service service.ServiceInterface) {
 	port := flag.String("port", "8001", "API server port")
 
 	flag.Parse()
@@ -23,8 +24,10 @@ func NewServer(handlers service.ServiceInterface) {
 
 	defer stop()
 
+	director := director.NewDirector(service)
+
 	// Start API server in a goroutine and capture the server for graceful shutdown.
-	server := router.NewServer(*port, handlers)
+	server := router.NewServer(*port, director)
 
 	go func() {
 		log.Printf("Starting API server on port %s...", *port)

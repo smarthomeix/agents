@@ -1,5 +1,7 @@
 package service
 
+import "time"
+
 type Configuration map[string]any
 
 type Service struct {
@@ -27,7 +29,7 @@ type IntegrationCollection map[string]Integration
 
 type IntegrationInterface interface {
 	GetIntegration() Integration
-	NewDevice(config Configuration) (DeviceInterface, error)
+	NewDevice(config Configuration) (DriverInterface, error)
 }
 
 type ParameterDefinition struct {
@@ -59,8 +61,15 @@ type ExecuteActionResult struct {
 	Message string
 }
 
-type DeviceInterface interface {
+type DriverInterface interface {
 	GetActions() ActionCollection
 	GetTelemetry() (Telemetry, error)
 	ExecuteAction(action ExecuteActionRequest) (ExecuteActionResult, error)
+}
+
+type Device struct {
+	ID            string
+	IntegrationID string
+	Config        Configuration
+	RegisteredAt  time.Time
 }
