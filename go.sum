@@ -1,0 +1,4 @@
+github.com/go-chi/chi/v5 v5.2.1 h1:KOIHODQj58PmL80G2Eak4WdvUzjSJSm0vG72crDCqb8=
+github.com/go-chi/chi/v5 v5.2.1/go.mod h1:L2yAIGWB3H+phAw1NxKwWM+7eUH/lU8pOMm5hHcoops=
+github.com/smarthomeix/pkg v0.0.0-20250312083255-20284bfd2113 h1:88kpNm7iKURojE4XS9Bh4XRyNi01vohBNmA+ohOoByY=
+github.com/smarthomeix/pkg v0.0.0-20250312083255-20284bfd2113/go.mod h1:kaS7oA8d1kbdEUSzfdhtYvb+blpvbPjfjnt2inMaM1M=

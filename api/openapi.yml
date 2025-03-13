@@ -1,0 +1,80 @@
+openapi: 3.1.1
+
+servers:
+  - url: https://localhost:8001
+    description: smarthomeIX Agent
+
+info:
+  title: smarthomeIX Agent
+  version: 1.0.0
+
+  description: |
+    smarthomeIX is a modular smart home system consisting of a central core service (**smarthomeIX**) and distributed **agents** that interface directly with smart devices. Communication between smarthomeIX and agents combines HTTP for control actions (like registration and configuration) and MQTT for asynchronous event and status updates.
+tags:
+  - name: Service
+  - name: Integrations
+
+paths:
+  /service:
+    get:
+      tags:
+        - Service
+      operationId: GetService
+      summary: Return service summary and basic configuration
+      responses:
+        200:
+          $ref: '#/components/responses/Service'
+  /integrations:
+    get:
+      tags:
+        - Integrations
+      operationId: GetIntegrations
+      summary: Returns a list of integration handlers
+      responses:
+        200:
+          $ref: '#/components/responses/Integrations'
+
+components:
+  schemas:
+    Integration:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+    Service:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        version:
+          type: string
+        description:
+          type: string
+        brand:
+          type: string
+        developer:
+          type: string
+  responses:
+    Service:
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Service"
+    Integrations:
+      description: OK
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              integrations:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Integration"
