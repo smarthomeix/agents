@@ -1,6 +1,7 @@
 package director
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"sync"
@@ -9,87 +10,134 @@ import (
 	"github.com/smarthomeix/agents/pkg/service"
 )
 
-type device struct {
-	device    *service.Device
-	driver    service.DriverInterface
-	telemetry service.Telemetry
+type Device struct {
+	ID            string
+	IntegrationID string
+	Config        service.DeviceConfig
+	RegisteredAt  time.Time
+	Telemetry     service.Telemetry
+	driver        service.DriverInterface
+	ctx           context.Context
+	cancel        context.CancelFunc
 }
 
-type registry map[string]*device
+type registry map[string]*Device
 
 type Director struct {
 	service  service.ServiceInterface
 	registry registry
-	mu       sync.RWMutex // Ensures thread safety
+	mu       sync.RWMutex
+	wg       sync.WaitGroup
 }
 
 func NewDirector(service service.ServiceInterface) *Director {
 	return &Director{
 		service:  service,
-		registry: make(registry), // Initialize map
+		registry: make(registry),
 	}
 }
 
-// GetService returns the associated service
 func (d *Director) GetService() service.ServiceInterface {
 	return d.service
 }
 
-// Attach registers a device and stores its driver instance
-func (d *Director) Attach(model *service.Device) error {
+func (d *Director) Attach(model *Device) (*Device, error) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 
-	// Check if device is already registered
 	if _, exists := d.registry[model.ID]; exists {
-		return fmt.Errorf("device %s is already registered", model.ID)
+		return nil, fmt.Errorf("device %s is already registered", model.ID)
 	}
 
-	// Get integration
 	integration, exists := d.service.GetIntegration(model.IntegrationID)
-
 	if !exists {
-		return fmt.Errorf("integration %s does not exist", model.IntegrationID)
+		return nil, fmt.Errorf("integration %s does not exist", model.IntegrationID)
 	}
 
-	// Create device driver
-	driver, err := integration.NewDevice(model.Config)
-
+	driver, err := integration.NewDriver(model.Config)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	model.RegisteredAt = time.Now()
+	ctx, cancel := context.WithCancel(context.Background())
 
-	// Store in registry
-	d.registry[model.ID] = &device{
-		device:    model,
-		driver:    driver,
-		telemetry: make(service.Telemetry),
+	dev := &Device{
+		ID:            model.ID,
+		IntegrationID: model.IntegrationID,
+		Config:        model.Config,
+		RegisteredAt:  time.Now(),
+		Telemetry: service.Telemetry{
+			Data: make(service.TelemetryData),
+		},
+		driver: driver,
+		ctx:    ctx,
+		cancel: cancel,
 	}
 
-	return nil
+	d.registry[dev.ID] = dev
+	d.wg.Add(1)
+
+	go func(dev *Device) {
+		defer d.wg.Done()
+		ticker := time.NewTicker(30 * time.Second)
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-dev.ctx.Done():
+				log.Printf("Telemetry loop stopped for device %s", dev.ID)
+				return
+			case <-ticker.C:
+				telemetryCtx, cancel := context.WithTimeout(dev.ctx, 5*time.Second)
+				telemetry, err := dev.driver.GetTelemetry(telemetryCtx)
+				cancel()
+
+				updatedAt := time.Now()
+
+				d.mu.Lock()
+				if err != nil {
+					log.Printf("Failed to get telemetry for device %s: %v", dev.ID, err)
+					dev.Telemetry.UpdatedAt = &updatedAt
+				} else {
+					dev.Telemetry.Data = telemetry
+					dev.Telemetry.UpdatedAt = &updatedAt
+				}
+				d.mu.Unlock()
+
+				log.Printf("Telemetry update for device %s: %+v", dev.ID, dev.Telemetry)
+			}
+		}
+	}(dev)
+
+	return dev, nil
 }
 
-// Detach removes a device from the registry
 func (d *Director) Detach(deviceID string) {
 	d.mu.Lock()
-	defer d.mu.Unlock()
-
-	if _, exists := d.registry[deviceID]; !exists {
-		log.Printf("attempting to detach device %s which does not exist", deviceID)
+	dev, exists := d.registry[deviceID]
+	if !exists {
+		d.mu.Unlock()
+		log.Printf("Attempting to detach device %s which does not exist", deviceID)
 		return
 	}
 
+	dev.cancel()
 	delete(d.registry, deviceID)
+	d.mu.Unlock()
+
+	d.wg.Wait()
+
+	log.Printf("Device %s detached successfully", deviceID)
 }
 
-// GetDevice retrieves a device by ID
-func (d *Director) GetDevice(deviceID string) (*device, bool) {
+func (d *Director) GetDevice(deviceID string) (Device, bool) {
 	d.mu.RLock()
 	defer d.mu.RUnlock()
 
 	device, exists := d.registry[deviceID]
+	if !exists {
+		return Device{}, false
+	}
 
-	return device, exists
+	return *device, true
 }

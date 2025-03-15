@@ -1,8 +1,9 @@
 package service
 
-import "time"
-
-type Configuration map[string]any
+import (
+	"context"
+	"time"
+)
 
 type Service struct {
 	ID          string
@@ -29,25 +30,22 @@ type IntegrationCollection map[string]Integration
 
 type IntegrationInterface interface {
 	GetIntegration() Integration
-	NewDevice(config Configuration) (DriverInterface, error)
-}
-
-type ParameterDefinition struct {
-	Name         string
-	Type         string // e.g., "string", "int", "boolean"
-	Required     bool
-	DefaultValue any
+	NewDriver(config DeviceConfig) (DriverInterface, error)
 }
 
 type Action struct {
 	Name        string
 	Description string
-	Parameters  []ParameterDefinition
 }
 
 type ActionCollection map[string]Action
 
-type Telemetry map[string]any
+type TelemetryData map[string]any
+
+type Telemetry struct {
+	Data      TelemetryData
+	UpdatedAt *time.Time
+}
 
 type ActionParameters map[string]any
 
@@ -63,13 +61,8 @@ type ExecuteActionResult struct {
 
 type DriverInterface interface {
 	GetActions() ActionCollection
-	GetTelemetry() (Telemetry, error)
-	ExecuteAction(action ExecuteActionRequest) (ExecuteActionResult, error)
+	GetTelemetry(ctx context.Context) (TelemetryData, error)
+	ExecuteAction(ctx context.Context, action ExecuteActionRequest) (ExecuteActionResult, error)
 }
 
-type Device struct {
-	ID            string
-	IntegrationID string
-	Config        Configuration
-	RegisteredAt  time.Time
-}
+type DeviceConfig map[string]any

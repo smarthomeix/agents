@@ -47,5 +47,6 @@ func mountDevices(mux *chi.Mux, director *director.Director) {
 
 	mux.Post("/devices", h.Post)
 
+	mux.With(h.Middleware).Get("/devices/{deviceId}", h.Get)
 	mux.With(h.Middleware).Delete("/devices/{deviceId}", h.Delete)
 }

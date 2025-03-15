@@ -20,7 +20,6 @@ func NewHandler(director *director.Director) *Handler {
 }
 
 func (h *Handler) Post(w http.ResponseWriter, r *http.Request) {
-
 	request := CreateRequest{}
 
 	err := json.NewDecoder(r.Body).Decode(&request)
@@ -39,17 +38,24 @@ func (h *Handler) Post(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.director.Attach(model)
+	device, err := h.director.Attach(model)
 
 	if err != nil {
 		response.HandleStatus(w, http.StatusConflict)
 		return
 	}
 
-	resources := FormatResource(*model)
+	resources := FormatResource(*device)
 
 	response.HandleJSON(w, resources)
+}
 
+func (h *Handler) Get(w http.ResponseWriter, r *http.Request) {
+	device, _ := GetDeviceFromContext(r)
+
+	resources := FormatResource(*device)
+
+	response.HandleJSON(w, resources)
 }
 
 func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {

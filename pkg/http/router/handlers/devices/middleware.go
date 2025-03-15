@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/smarthomeix/agents/pkg/director"
 	"github.com/smarthomeix/pkg/http/response"
 )
 
@@ -30,4 +31,10 @@ func (h *Handler) Middleware(next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r.WithContext(ctxWithDevice))
 	})
+}
+
+func GetDeviceFromContext(r *http.Request) (*director.Device, bool) {
+	device, ok := r.Context().Value(ContextKey).(*director.Device)
+
+	return device, ok
 }

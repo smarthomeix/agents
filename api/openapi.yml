@@ -65,11 +65,25 @@ paths:
         409:
           $ref: '#/components/responses/409'
   /devices/{deviceId}:
+    get:
+      tags:
+        - Devices
+      operationId: GetDevice
+      summary: Get device state
+      parameters:
+        - $ref: "#/components/parameters/pathDeviceId"
+      responses:
+        200:
+          $ref: '#/components/responses/Device'
+        404:
+          $ref: '#/components/responses/404'
     delete:
       tags:
         - Devices
       operationId: DeleteDevice
       summary: Delete an instance of a device
+      parameters:
+        - $ref: "#/components/parameters/pathDeviceId"
       responses:
         204:
           $ref: '#/components/responses/204'
@@ -77,6 +91,14 @@ paths:
           $ref: '#/components/responses/404'
 
 components:
+  parameters:
+    pathDeviceId:
+      name: deviceId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
   schemas:
     Integration:
       type: object
@@ -113,7 +135,17 @@ components:
         config:
           type: object
           additionalProperties: true
+        telemetry:
+          $ref: '#/components/schemas/Telemetry'
         registeredAt:
+          type: string
+          format: date-time
+    Telemetry:
+      type: object
+      properties:
+        data:
+          type: object
+        updatedAt:
           type: string
           format: date-time
   responses:

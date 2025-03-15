@@ -1,6 +1,8 @@
 package example
 
 import (
+	"context"
+
 	"github.com/smarthomeix/agents/pkg/service"
 )
 
@@ -10,10 +12,10 @@ func (d *ExampleDriver) GetActions() service.ActionCollection {
 	return service.ActionCollection{}
 }
 
-func (d *ExampleDriver) GetTelemetry() (service.Telemetry, error) {
-	return service.Telemetry{}, nil
+func (d *ExampleDriver) GetTelemetry(ctx context.Context) (service.TelemetryData, error) {
+	return service.TelemetryData{}, nil
 }
 
-func (d *ExampleDriver) ExecuteAction(req service.ExecuteActionRequest) (service.ExecuteActionResult, error) {
+func (d *ExampleDriver) ExecuteAction(ctx context.Context, req service.ExecuteActionRequest) (service.ExecuteActionResult, error) {
 	return service.ExecuteActionResult{}, nil
 }

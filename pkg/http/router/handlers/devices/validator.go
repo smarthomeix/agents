@@ -1,12 +1,13 @@
 package devices
 
 import (
+	"github.com/smarthomeix/agents/pkg/director"
 	base "github.com/smarthomeix/agents/pkg/service"
 	"github.com/smarthomeix/pkg/validator"
 )
 
-func ValidateRequest(request CreateRequest, service base.ServiceInterface) (*base.Device, error) {
-	model := &base.Device{}
+func ValidateRequest(request CreateRequest, service base.ServiceInterface) (*director.Device, error) {
+	model := &director.Device{}
 
 	validation := validator.New()
 
@@ -25,7 +26,7 @@ func ValidateRequest(request CreateRequest, service base.ServiceInterface) (*bas
 	return model, nil
 }
 
-func validID(id string, model *base.Device) error {
+func validID(id string, model *director.Device) error {
 	if id == "" {
 		return validator.NewFieldError("ID is required")
 	}
@@ -35,7 +36,7 @@ func validID(id string, model *base.Device) error {
 	return nil
 }
 
-func validIntegrationID(integrationID string, model *base.Device, service base.ServiceInterface) error {
+func validIntegrationID(integrationID string, model *director.Device, service base.ServiceInterface) error {
 	if integrationID == "" {
 		return validator.NewFieldError("Integration ID is required")
 	}

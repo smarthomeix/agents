@@ -19,6 +19,6 @@ func (i *ControllerIntegration) GetIntegration() service.Integration {
 	}
 }
 
-func (i *ControllerIntegration) NewDevice(config service.Configuration) (service.DriverInterface, error) {
+func (i *ControllerIntegration) NewDriver(config service.DeviceConfig) (service.DriverInterface, error) {
 	return &ExampleDriver{}, nil
 }
