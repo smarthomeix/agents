@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"flag"
+	"fmt"
 	"log"
 	"net/http"
 	"os/signal"
@@ -12,22 +13,31 @@ import (
 	"github.com/smarthomeix/agents/pkg/director"
 	"github.com/smarthomeix/agents/pkg/http/router"
 	"github.com/smarthomeix/agents/pkg/service"
+	"github.com/smarthomeix/pkg/mqtt/broker"
 )
 
-func NewServer(service service.ServiceInterface) {
+func NewServer(svc service.ServiceInterface) {
 	port := flag.String("port", "8001", "API server port")
 
+	brokerHost := flag.String("broker", "tcp://localhost:1883", "mqtt broker host")
+
 	flag.Parse()
+
+	// Initialize MQTT broker connection
+	// We'll handle broker shutdown in the graceful shutdown process.
+	clientID := fmt.Sprintf("smarthomeix:agent:%s", *port)
+
+	bkr := broker.NewBroker(*brokerHost, clientID)
 
 	// Create a context that cancels on SIGINT/SIGTERM
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 
 	defer stop()
 
-	director := director.NewDirector(service)
+	dir := director.NewDirector(svc, bkr)
 
 	// Start API server in a goroutine and capture the server for graceful shutdown.
-	server := router.NewServer(*port, director)
+	server := router.NewServer(*port, dir)
 
 	go func() {
 		log.Printf("Starting API server on port %s...", *port)
@@ -49,6 +59,8 @@ func NewServer(service service.ServiceInterface) {
 	if err := server.Shutdown(shutdownCtx); err != nil {
 		log.Printf("HTTP server shutdown error: %v", err)
 	}
+
+	bkr.Disconnect()
 
 	log.Println("Shutdown complete.")
 }
