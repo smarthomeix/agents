@@ -20,8 +20,10 @@ type TelemetryResource struct {
 	UpdatedAt *string               `json:"updatedAt"`
 }
 
-func FormatResource(model director.Device) Resource {
-	telemetry := TelemetryResource{}
+func FormatResource(model *director.Device) Resource {
+	telemetry := TelemetryResource{
+		Data: model.Telemetry.Data,
+	}
 
 	if model.Telemetry.UpdatedAt != nil {
 		updatedAt := model.Telemetry.UpdatedAt.UTC().Format(time.RFC3339)

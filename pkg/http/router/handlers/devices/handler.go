@@ -45,7 +45,7 @@ func (h *Handler) Post(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resources := FormatResource(*device)
+	resources := FormatResource(device)
 
 	response.HandleJSON(w, resources)
 }
@@ -53,7 +53,7 @@ func (h *Handler) Post(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) Get(w http.ResponseWriter, r *http.Request) {
 	device, _ := GetDeviceFromContext(r)
 
-	resources := FormatResource(*device)
+	resources := FormatResource(device)
 
 	response.HandleJSON(w, resources)
 }

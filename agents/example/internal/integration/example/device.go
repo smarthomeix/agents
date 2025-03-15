@@ -13,7 +13,10 @@ func (d *ExampleDriver) GetActions() service.ActionCollection {
 }
 
 func (d *ExampleDriver) GetTelemetry(ctx context.Context) (service.TelemetryData, error) {
-	return service.TelemetryData{}, nil
+	return service.TelemetryData{
+		"mode":        "cool",
+		"temperature": 25,
+	}, nil
 }
 
 func (d *ExampleDriver) ExecuteAction(ctx context.Context, req service.ExecuteActionRequest) (service.ExecuteActionResult, error) {

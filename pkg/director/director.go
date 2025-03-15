@@ -130,14 +130,15 @@ func (d *Director) Detach(deviceID string) {
 	log.Printf("Device %s detached successfully", deviceID)
 }
 
-func (d *Director) GetDevice(deviceID string) (Device, bool) {
+func (d *Director) GetDevice(deviceID string) (*Device, bool) {
 	d.mu.RLock()
 	defer d.mu.RUnlock()
 
 	device, exists := d.registry[deviceID]
+
 	if !exists {
-		return Device{}, false
+		return &Device{}, false
 	}
 
-	return *device, true
+	return device, true
 }
